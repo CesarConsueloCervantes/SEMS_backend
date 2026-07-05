@@ -1,9 +1,57 @@
 <?php
 
-//el trait de los scopes de los archivos procesados
+namespace App\Models\Archives\ArchivesProssesed;
 
-//scopeHash regresa los registros con el mismo HASH
+use Illuminate\Database\Eloquent\Builder;
 
-//para buscar por nombre
+trait ArchivesProssesedScopes
+{
+    /**
+     * Scope to search processed archives by their original file name.
+     *
+     * @param Builder $query
+     * @param string|null $term
+     * @return Builder
+     */
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        if (empty($term)) {
+            return $query;
+        }
 
-//para buscar por estado
+        return $query->where('archive_name', 'like', "%{$term}%");
+    }
+
+    /**
+     * Scope to filter archives uploaded within a specific date range.
+     *
+     * @param Builder $query
+     * @param mixed $startDate
+     * @param mixed $endDate
+     * @return Builder
+     */
+    public function scopeCreatedBetween(Builder $query, $startDate, $endDate): Builder
+    {
+        if (empty($startDate) || empty($endDate)) {
+            return $query;
+        }
+
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
+    }
+
+    /**
+     * Check if a specific hash exists in the database.
+     *
+     * @param Builder $query
+     * @param string|null $hash
+     * @return bool
+     */
+    public function scopeHashExists(Builder $query, ?string $hash): bool
+    {
+        if (empty($hash)) {
+            return false;
+        }
+
+        return $query->where('archive_hash', $hash)->exists();
+    }
+}

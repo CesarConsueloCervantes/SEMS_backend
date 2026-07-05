@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id');
             $table->string('archive_name');
             $table->string('archive_hash');
+            $table->string('archive_path');
+            $table->integer('archive_size_bytes');
             $table->timestamps();
         });
     }

@@ -28,7 +28,7 @@ return new class extends Migration
             $table->String('sub_total');  //SubTotal
             $table->String('efecto_comprobante');  //EfectoComprobante
             $table->boolean('estatus');  //Estatus
-            $table->String('fecha_cancelacion');  //FechaCancelacion 
+            $table->String('fecha_cancelacion')->nullable();  //FechaCancelacion 
             $table->String('state');  //estatus
             $table->timestamps();
         });

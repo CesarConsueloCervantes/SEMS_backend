@@ -57,12 +57,15 @@ class ArchivesProssesedController extends Controller
 
         $hash_exists = ArchivesProssesed::hashExists($validate["hash"]);
         $name_exists = ArchivesProssesed::nameExists($validate["name"]);
+
         $message = $hash_exists==true? "El archivo ya existe en la Base de datos": "Archivo valido";
+        $new_name = $name_exists==true? "Se cambio el nombre a '". $validate["name"]."-". now()->format("d-m-y")."'": false;
         
         return response()->json([
             "message" => $message,
             "hash" => $hash_exists,
             "name" => $name_exists,
+            "new_name" => $new_name
         ], Response::HTTP_OK);
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use SplFileObject;
 
 /**
  * class ArchivesProssesedRepositorie
@@ -54,7 +55,7 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
             $file_name = $file->getClientOriginalName();
             $file_size = $file->getSize();
 
-            $message = "";
+            $message = $this->prosesingData($path);
 
             return response()->json([
                     'message' => $message,
@@ -77,6 +78,31 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
                     'message' => $message
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+    }
+
+    private function prosesingData(String $path): String
+    {
+        $file = new SplFileObject(Storage::path($path));
+        $file->setFlags(
+            SplFileObject::READ_CSV |
+            SplFileObject::SKIP_EMPTY
+        ); 
+
+        $file->setCsvControl('~');
+
+        $message = "Se omitieron los siguientes datos:";
+        $are_omit = false;
+        foreach($file as $row){
+            
+            $omit_message = "";
+
+            if ($omit_message != "")
+            {
+                $message = $message."\n".$omit_message;
+                $are_omit = true;
+            }
+        }
+        return $are_omit? $message: "todos los datos se agregaron correctamente";
     }
 
 }

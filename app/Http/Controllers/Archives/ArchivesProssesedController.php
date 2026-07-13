@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Archives;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Archives\ArchivesProssesedRequest;
 use App\Models\Archives\ArchivesProssesed\ArchivesProssesed;
 use App\Repositories\Archives\ArchivesProssesedRepositorie;
 use Illuminate\Http\JsonResponse;
@@ -30,10 +31,10 @@ class ArchivesProssesedController extends Controller
         return response()->json();
     }
 
-    public function store()
+    public function store(ArchivesProssesedRequest $request)
     {
-
-        return;
+        
+        return $this->repository->createArchiveProssesed($request->validated());
     }
 
     public function update(): JsonResponse

@@ -38,10 +38,14 @@ class ArchivesProssesedController extends Controller
         return $this->repository->createArchiveProssesed($request->validated());
     }
 
-    public function update(): JsonResponse
+    public function update(Request $request, ArchivesProssesed $archives_prossesed): JsonResponse
     {
+        $validate = $request->validate(['archive_name' => 'required|String|max:255']);
 
-        return response()->json();
+        $archives_prossesed->archive_name = $validate['archive_name'];
+        $archives_prossesed->save();
+
+        return response()->json([], Response::HTTP_OK);
     }
 
     /**

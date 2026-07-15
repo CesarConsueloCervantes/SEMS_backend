@@ -9,6 +9,7 @@ use App\Repositories\Archives\ArchivesProssesedRepositorie;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class ArchivesProssesedController extends Controller
 {
@@ -43,10 +44,23 @@ class ArchivesProssesedController extends Controller
         return response()->json();
     }
 
-    public function delete(): JsonResponse
+    /**
+     * Delete the processed archive, its physical file from storage, and all associated metadata.
+     *
+     * @param ArchivesProssesed $archives_prossesed
+     * @return JsonResponse
+     */
+    public function delete(ArchivesProssesed $archives_prossesed): JsonResponse
     {
+        $archives_prossesed->metadata()->delete();
 
-        return response()->json();
+        if ($archives_prossesed->archive_path) {
+            Storage::delete($archives_prossesed->archive_path);
+        }
+
+        $archives_prossesed->delete();
+
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
 
     public function consultHashAndNameExists(Request $request): JsonResponse

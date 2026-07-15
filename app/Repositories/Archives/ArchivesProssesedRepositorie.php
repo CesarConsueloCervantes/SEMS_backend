@@ -38,13 +38,18 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
             $file = $data['file'];
             $hash_file = strtolower($data['hash_file']);
 
-            $tempPath = $file->store('temp');
+            config(['filesystems.disks.app_root' => [
+                'driver' => 'local',
+                'root' => storage_path('app'),
+            ]]);
 
-            $calculatedHash = hash_file('sha256', Storage::path($tempPath));
+            $tempPath = $file->store('temp', 'app_root');
+
+            $calculatedHash = hash_file('sha256', Storage::disk('app_root')->path($tempPath));
 
             if ($calculatedHash != $hash_file)
             {
-                Storage::delete($tempPath);
+                Storage::disk('app_root')->delete($tempPath);
 
                 return response()->json([
                     'message' => "Error con el archivo",
@@ -53,8 +58,9 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
                 ], Response::HTTP_CONFLICT);
             }
 
-            Storage::delete($tempPath);
-            $path = $file->store('private');
+            Storage::disk('app_root')->delete($tempPath);
+
+            $path = $file->store('', 'local');
             $file_name = $file->getClientOriginalName();
             $file_size = $file->getSize();
 

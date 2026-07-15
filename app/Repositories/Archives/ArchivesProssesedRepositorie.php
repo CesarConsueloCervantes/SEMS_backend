@@ -3,10 +3,13 @@
 namespace App\Repositories\Archives;
 
 use App\Models\Archives\ArchivesProssesed\ArchivesProssesed;
+use App\Models\Archives\Metadata\Metadata;
 use App\Repositories\IndexRepositorie;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use SplFileObject;
@@ -55,16 +58,18 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
             $file_name = $file->getClientOriginalName();
             $file_size = $file->getSize();
 
-            $message = $this->prosesingData($path);
+            // $user_id = Auth::getUser()->id;
+            $user_id = 1;
 
-            return response()->json([
-                    'message' => $message,
-                    'path' => $path,
-                    'file_name' => $file_name,
-                    'file_size' => $file_size,
-                    'hash_file' =>$data['hash_file'],
-                    'hash_calculated' =>$calculatedHash,
-            ], Response::HTTP_CREATED);
+            $archive = new ArchivesProssesed();
+
+            $archive->user_id  = $user_id;
+            $archive->archive_name  = $file_name;
+            $archive->archive_hash  = $calculatedHash;
+            $archive->archive_path  = $path;
+            $archive->archive_size_bytes  = $file_size;
+
+            $archive->save();
 
         } catch (Exception $e) {
             $message = $e->getMessage();
@@ -78,9 +83,20 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
                     'message' => $message
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+
+        $message = $this->prosesingData($path, $archive->id, $user_id);
+
+        return response()->json([
+                'message' => $message,
+                'path' => $path,
+                'file_name' => $file_name,
+                'file_size' => $file_size,
+                'hash_file' =>$data['hash_file'],
+                'hash_calculated' =>$calculatedHash,
+        ], Response::HTTP_CREATED);
     }
 
-    private function prosesingData(String $path): String
+    private function prosesingData(String $path, String $file_id, String $user_id): String
     {
         $file = new SplFileObject(Storage::path($path));
         $file->setFlags(
@@ -92,17 +108,94 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
 
         $message = "Se omitieron los siguientes datos:";
         $are_omit = false;
-        foreach($file as $row){
+        foreach($file as $index => $row){
+
+            if (!is_array($row) || $index == 0) {
+                continue;
+            }
             
-            $omit_message = "";
+            $omit_message = $this->registerMetadataRow($row, $file_id, $user_id);
 
             if ($omit_message != "")
             {
-                $message = $message."\n".$omit_message;
+                $message .= "\n".$index.": ".$omit_message;
                 $are_omit = true;
             }
         }
         return $are_omit? $message: "todos los datos se agregaron correctamente";
+    }
+
+    private function registerMetadataRow(array $row, String $file_id, String $user_id): String
+    {
+        try {
+
+            $message = "";
+
+            $metadata = Metadata::where('uuid', $row[0])->first();
+            $fecha_certificacion_sat_current = Carbon::parse($row[7]);
+
+            if ($metadata)
+            {
+                $fecha_certificacion_sat_after = Carbon::parse($metadata->fecha_certificacion_sat);
+                if (!$fecha_certificacion_sat_current->gt($fecha_certificacion_sat_after))
+                {
+                    $message = "[";
+                    foreach ($row as $atribute){
+                        $message .= "{$atribute}, ";
+                    }
+                    $message .= " Devido a registro antiguo]";
+                    return $message;
+                }
+
+            } else {
+                $metadata = new Metadata();
+
+                $metadata->user_id = $user_id;
+                $metadata->archive_prossesed_id = $file_id;
+                $metadata->uuid = $row[0];
+            }
+
+            $monto = intval($row[8]);
+            $subtotal = $monto / 1.16;
+            $iva = $subtotal*0.16;
+
+            $fecha_emision = Carbon::parse($row[6]);
+
+            $metadata->rfc_emisor = $row[1];
+            $metadata->nombre_emisor = $row[2];
+            $metadata->rfc_receptor = $row[3];
+            $metadata->nombre_receptor = $row[4];
+            $metadata->pac_certifico = $row[5];
+            $metadata->fecha_emision = $fecha_emision;
+            $metadata->fecha_certificacion_sat = $fecha_certificacion_sat_current;
+            $metadata->monto = $monto;
+            $metadata->iva = $iva;
+            $metadata->sub_total = $subtotal;
+            $metadata->efecto_comprobante = $row[9];
+            $metadata->estatus = intval($row[10]);
+            $metadata->fecha_cancelacion = $row[11];
+            $metadata->state = "created";
+
+            $metadata->save();
+
+            return $message;
+        } catch (Exception $e) {
+            
+            Log::error('Error creating Metadata', [
+                'message' => $$e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $message = "[";
+
+            foreach ($row as $atribute){
+                $message .= "{$atribute}, ";
+            }
+
+            $message .= " Devido a error]";
+
+            return  $message;
+        }
     }
 
 }

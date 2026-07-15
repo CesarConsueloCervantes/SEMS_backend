@@ -26,10 +26,19 @@ class ArchivesProssesedController extends Controller
         return response()->json();
     }
 
-    public function show(): JsonResponse
+    /**
+     * Display the specified processed archive's basic information.
+     *
+     * @param ArchivesProssesed $archives_prossesed
+     * @return JsonResponse
+     */
+    public function show(ArchivesProssesed $archives_prossesed): JsonResponse
     {
-
-        return response()->json();
+        return response()->json([
+            'archive_name' => $archives_prossesed->archive_name,
+            'archive_hash' => $archives_prossesed->archive_hash,
+            'archive_size_bytes' => $archives_prossesed->getFormattedSizeAttribute(),
+        ], Response::HTTP_OK);
     }
 
     public function store(ArchivesProssesedRequest $request)

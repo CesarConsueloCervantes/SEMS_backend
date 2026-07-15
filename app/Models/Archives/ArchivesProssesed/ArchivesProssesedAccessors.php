@@ -7,7 +7,7 @@ use \Illuminate\Support\Facades\Storage;
  * @property string|null $archive_name
  * @property string|null $archive_hash
  * @property string|null $archive_path
- * @property int|null $archive_size
+ * @property int|null $archive_size_bytes
  * @property \Carbon\Carbon|null $created_at
  */
 trait ArchivesProssesedAccessors
@@ -65,11 +65,11 @@ trait ArchivesProssesedAccessors
      */
     public function getFormattedSizeAttribute(): ?string
     {
-        if (!isset($this->archive_size)) {
+        if (!isset($this->archive_size_bytes)) {
             return null;
         }
 
-        $bytes = $this->archive_size;
+        $bytes = $this->archive_size_bytes;
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
         for ($i = 0; $bytes >= 1024 && $i < count($units) - 1; $i++) {

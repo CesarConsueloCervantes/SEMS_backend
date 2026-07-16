@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Archives;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Archives\ArchivesProssesedRequest;
 use App\Models\Archives\ArchivesProssesed\ArchivesProssesed;
+use App\Models\User\User;
 use App\Repositories\Archives\ArchivesProssesedRepositorie;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,10 +21,26 @@ class ArchivesProssesedController extends Controller
         $this->repository = $repository;
     }
 
-    public function index(): JsonResponse
-    {
+    /**
+     * Display a listing of all processed archives belonging to the specified user,
+     * ordered alphabetically by their names.
+     *
+     * @param User $user
+     * @return JsonResponse
+     */
+    public function indexByUser(User $user): JsonResponse
+    {   
+        $archives = $user->archivesProcessed()->orderBy('archive_name', 'asc')->get();
+        
+        $basicInfo = $archives->map(function ($archive) {
+            return [
+                'archive_name' => $archive->archive_name,
+                'short_archive_hash' => substr($archive->archive_hash, 0, 32),
+                'archive_size_bytes' => $archive->getFormattedSizeAttribute(),
+            ];
+        });
 
-        return response()->json();
+        return response()->json($basicInfo, Response::HTTP_OK);
     }
 
     /**
@@ -37,6 +54,7 @@ class ArchivesProssesedController extends Controller
         return response()->json([
             'archive_name' => $archives_prossesed->archive_name,
             'archive_hash' => $archives_prossesed->archive_hash,
+            'archive_hash_short' => $archives_prossesed->archive_hash_short,
             'archive_size_bytes' => $archives_prossesed->getFormattedSizeAttribute(),
         ], Response::HTTP_OK);
     }

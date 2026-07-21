@@ -64,8 +64,7 @@ class ArchivesProssesedRepositorie extends IndexRepositorie
             $file_name = $file->getClientOriginalName();
             $file_size = $file->getSize();
 
-            // $user_id = Auth::getUser()->id;
-            $user_id = 1;
+            $user_id = Auth::user()->id;
 
             $archive = new ArchivesProssesed();
 

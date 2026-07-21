@@ -4,9 +4,12 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\OauthLoginRequest;
+use App\Http\Requests\User\RegisterRequest;
 use App\Models\User\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -48,10 +51,40 @@ class UserController extends Controller
      */
     public function oauthLogin(OauthLoginRequest $request): JsonResponse
     {
-        $user = User::query()
-            ->where('email', $request->email)
-            ->first();
+        if (! Auth::attempt($request->only('email', 'password'))) {
+            return response()->json([
+                'message' => 'Las credenciales no coinciden con nuestros registros.'
+            ], 422);
+        }
 
-        return response()->json($user->login(), Response::HTTP_OK);
+        /** @var \App\Models\User\User $user */
+        $user = Auth::user();
+
+        $user->tokens()->update([
+            'revoked' => true,
+        ]);
+
+        return response()->json(
+            $user->login()
+        );
+    }
+
+    /**
+     * Register a new user, store in the database, and return an access token.
+     * 
+     * @param RegisterRequest $request
+     * @return JsonResponse
+     */
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        // Crea el nuevo registro del usuario
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Retorna la respuesta de inicio de sesión con el token de acceso
+        return response()->json($user->login(), Response::HTTP_CREATED);
     }
 }

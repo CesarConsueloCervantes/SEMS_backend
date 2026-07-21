@@ -54,7 +54,6 @@ class ArchivesProssesedController extends Controller
         return response()->json([
             'archive_name' => $archives_prossesed->archive_name,
             'archive_hash' => $archives_prossesed->archive_hash,
-            'archive_hash_short' => $archives_prossesed->archive_hash_short,
             'archive_size_bytes' => $archives_prossesed->getFormattedSizeAttribute(),
         ], Response::HTTP_OK);
     }

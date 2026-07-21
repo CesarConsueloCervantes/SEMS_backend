@@ -7,6 +7,7 @@ use App\Http\Requests\User\OauthLoginRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Models\User\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -86,5 +87,20 @@ class UserController extends Controller
 
         // Retorna la respuesta de inicio de sesión con el token de acceso
         return response()->json($user->login(), Response::HTTP_CREATED);
+    }
+
+    /**
+     * Revoke token and logout user.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->token()->revoke();
+
+        return response()->json([
+            'message' => 'Sesión cerrada correctamente.'
+        ]);
     }
 }

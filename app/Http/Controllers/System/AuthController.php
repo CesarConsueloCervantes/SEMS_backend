@@ -49,15 +49,16 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        // Crea el nuevo registro del usuario
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        // Retorna la respuesta de inicio de sesión con el token de acceso
-        return response()->json($user->login(), Response::HTTP_CREATED);
+        return response()->json(
+            $user->login(),
+            Response::HTTP_CREATED
+        );
     }
 
     /**

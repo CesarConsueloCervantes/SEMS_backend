@@ -10,8 +10,6 @@ class OauthLoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     * 
-     * Determina si el usuario está autorizado a realizar esta petición.
      *
      * @return bool
      */
@@ -22,16 +20,12 @@ class OauthLoginRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     * 
-     * Retorna las reglas de validación: correo obligatorio y válido, y contraseña obligatoria y válida.
-     *
-     * @return array
      */
-    public function rules(): array
+    public function rules()
     {
         return [
-            'email' => ['required', 'email', new IsEnabledUser],
-            'password' => ['required', new IsValidPassword($this->email)],
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ];
     }
 }

@@ -54,4 +54,13 @@ trait ArchivesProssesedScopes
 
         return $query->where('archive_hash', $hash)->exists();
     }
+
+    public function scopeNameExists(Builder $query, ?string $name): bool
+    {
+        if (empty($name)){
+            return false;
+        }
+
+        return $query->where('archive_name', $name)->exists();
+    }
 }

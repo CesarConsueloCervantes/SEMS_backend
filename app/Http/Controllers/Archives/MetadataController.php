@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Archives;
 
 use App\Http\Controllers\Controller;
-use App\Models\User\User;
 use App\Repositories\Archives\MetadataRepositorie;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class MetadataController extends Controller
 {
@@ -21,11 +21,13 @@ class MetadataController extends Controller
      * Display a listing of all metadata records belonging to the specified user,
      * ordered and filtered using the generic repository index method.
      *
-     * @param User $user
      * @return JsonResponse
      */
-    public function indexByUser(User $user): JsonResponse
+    public function indexByUser(): JsonResponse
     {
+        /** @var \App\Models\User\User $user */
+        $user = Auth::user();
+
         $first = request('first', false);
         $rows = request('rows', false);
         $orderBy = request('orderBy', false);

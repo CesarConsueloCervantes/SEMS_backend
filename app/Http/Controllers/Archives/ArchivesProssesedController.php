@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Archives;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Archives\ArchivesProssesedRequest;
 use App\Models\Archives\ArchivesProssesed\ArchivesProssesed;
-use App\Models\User\User;
 use App\Repositories\Archives\ArchivesProssesedRepositorie;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ArchivesProssesedController extends Controller
@@ -25,11 +25,13 @@ class ArchivesProssesedController extends Controller
      * Display a listing of all processed archives belonging to the specified user,
      * ordered alphabetically by their names.
      *
-     * @param User $user
      * @return JsonResponse
      */
-    public function indexByUser(User $user): JsonResponse
+    public function indexByUser(): JsonResponse
     {   
+        /** @var \App\Models\User\User $user */
+        $user = Auth::user();
+
         $archives = $user->archivesProcessed()->orderBy('archive_name', 'asc')->get();
         
         $basicInfo = $archives->map(function ($archive) {

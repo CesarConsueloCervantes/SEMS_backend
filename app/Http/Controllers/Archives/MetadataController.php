@@ -39,4 +39,14 @@ class MetadataController extends Controller
 
         return response()->json($result, Response::HTTP_OK);
     }
+
+    public function filtersOptions(): JsonResponse
+    {
+        /** @var \App\Models\User\User $user */
+        $user = Auth::user();
+
+        $filters = $this->repository->getFiltersoptions($user->metadata);
+
+        return response()->json($filters, Response::HTTP_OK);
+    }
 }

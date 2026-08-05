@@ -40,6 +40,30 @@ class MetadataController extends Controller
         return response()->json($result, Response::HTTP_OK);
     }
 
+
+    /**
+     * For exports all metadata records belonging to the specified user,
+     * ordered and filtered using the generic repository index method.
+     *
+     * @return JsonResponse
+     */
+    public function export(): JsonResponse
+    {
+        /** @var \App\Models\User\User $user */
+        $user = Auth::user();
+
+        $first = false;
+        $rows = false;
+        $orderBy = request('orderBy', false);
+        $ascending = request('ascending', '1');
+        $filters = json_decode(request('filters', '{}'), true);
+        $columns = request()->has('columns') ? json_decode(request('columns')) : array_keys($filters);
+
+        $result = $this->repository->index($first, $rows, $orderBy, $ascending, $filters, $columns, $user->metadata());
+
+        return response()->json($result, Response::HTTP_CREATED);
+    }
+
     public function filtersOptions(): JsonResponse
     {
         /** @var \App\Models\User\User $user */

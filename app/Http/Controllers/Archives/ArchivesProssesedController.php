@@ -36,6 +36,7 @@ class ArchivesProssesedController extends Controller
         
         $basicInfo = $archives->map(function ($archive) {
             return [
+                'id' => $archive->id,
                 'archive_name' => $archive->archive_name,
                 'short_archive_hash' => substr($archive->archive_hash, 0, 32),
                 'archive_size_bytes' => $archive->getFormattedSizeAttribute(),

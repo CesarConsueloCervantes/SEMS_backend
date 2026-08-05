@@ -38,16 +38,6 @@ trait MetadataScopes
                 break;
 
             case 'uuid':
-            case 'rfc_emisor':
-            case 'nombre_emisor':
-            case 'rfc_receptor':
-            case 'nombre_receptor':
-            case 'pac_certifico':
-            case 'monto':
-            case 'iva':
-            case 'sub_total':
-            case 'efecto_comprobante':
-            case 'state':
                 if ($matchMode === 'contains') {
                     $query->where($column, 'LIKE', '%' . $value . '%');
                 } else {
@@ -55,10 +45,65 @@ trait MetadataScopes
                 }
                 break;
 
+            case 'monto':
+            case 'iva':
+            case 'sub_total':
+                if ($matchMode === 'between' && is_array($value)) {
+                    $min = $value['min'] ?? null;
+                    $max = $value['max'] ?? null;
+
+                    if ($min !== null && $max !== null) {
+                        $query->whereBetween($column, [$min, $max]);
+                    } elseif ($min !== null) {
+                        $query->where($column, '>=', $min);
+                    } elseif ($max !== null) {
+                        $query->where($column, '<=', $max);
+                    }
+                }
+                break;
+
+            case 'rfc_emisor':
+            case 'nombre_emisor':
+            case 'rfc_receptor':
+            case 'nombre_receptor':
+            case 'pac_certifico':
+            case 'efecto_comprobante':
+                if ($matchMode === 'equals') {
+                    if (is_array($value) && count($value) > 0) {
+                        $query->whereIn($column, $value);
+                    } elseif (!is_array($value)) {
+                        $query->where($column, $value);
+                    }
+                } else {
+                    $query->where($column, 'LIKE', "%{$value}%");
+                }
+                break;
+
             case 'fecha_emision':
             case 'fecha_certificacion_sat':
+            case 'fecha_cancelacion':
             case 'created_at':
             case 'updated_at':
+                if (is_array($value)) {
+
+                    $start = $value['start'] ?? null;
+                    $end   = $value['end'] ?? null;
+
+                    if ($start && $end) {
+                        $query->whereBetween($column, [
+                            $start . ' 00:00:00',
+                            $end . ' 23:59:59',
+                        ]);
+                    } elseif ($start) {
+                        $query->whereDate($column, '>=', $start.' 00:00:00');
+                    } elseif ($end) {
+                        $query->whereDate($column, '<=', $end.' 23:59:59');
+                    }
+
+                } else {
+                    $query->whereDate($column, '=', $value);
+                }
+
                 break;
 
             default:
